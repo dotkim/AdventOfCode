@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Day3_2
 {
@@ -29,11 +30,13 @@ namespace Day3_2
     {
         public Point Point { get; set; }
         public Direction Direction { get; set; }
+        public int[] Range { get; set; }
 
-        public Entry(int x, int y, string d)
+        public Entry(int x, int y, string d, int[] range)
         {
             Point = new Point(x, y);
             Direction = new Direction() { D = d };
+            Range = range;
         }
     }
 
@@ -45,6 +48,7 @@ namespace Day3_2
         {
             string direction = action[0..1];
             Int32.TryParse(action[1..], out int distance);
+            int[] range = null;
 
             int x = point.X;
             int y = point.Y;
@@ -53,19 +57,34 @@ namespace Day3_2
             {
                 case "U":
                     x += distance;
+                    range = CreateRange(x, point.X);
                     break;
                 case "D":
                     x -= distance;
+                    range = CreateRange(x, point.X);
                     break;
                 case "R":
                     y += distance;
+                    range = CreateRange(y, point.Y);
                     break;
                 case "L":
                     y -= distance;
+                    range = CreateRange(y, point.Y);
                     break;
             }
 
-            return new Entry(x, y, direction);
+            return new Entry(x, y, direction, range);
+        }
+
+        private static int[] CreateRange(int x, int y)
+        {
+            int min = Math.Min(x, y);
+            int max = Math.Max(x, y);
+
+            int[] range = new int[max - min];
+            int a = 0;
+            for (int i = min; i < max; i++) { range[a] = i; a++; }
+            return range;
         }
 
         static void Main(string[] args)
@@ -90,45 +109,41 @@ namespace Day3_2
                     }
                     else if ((step % 2) == 0)
                     {
-                        int diff;
-                        Point newPoint = result.Point;
-                        string dire = result.Direction.D;
-
-                        switch (dire)
+                        int[] range = result.Range;
+                        
+                        for (int i = range[0]; i < range.Length; i++)
                         {
-                            case "U":
-                                diff = lastPoint.X + newPoint.X;
-                                while (lastPoint.X < newPoint.X)
+                            if (result.Direction.D == "U" || result.Direction.D == "D")
+                            {
+                                foreach (Point p in coordinates.Keys)
                                 {
-                                    if (coordinates.ContainsKey(new Point(lastPoint.Y))) Console.WriteLine("Found key");
-                                    lastPoint.X++;
+                                    if (p.X == i)
+                                    {
+                                        Console.WriteLine("Found X Coordinate to control: " + p.ToString());
+                                    }
                                 }
-                                break;
-                            case "D":
-                                diff = lastPoint.X - newPoint.X;
-                                while (lastPoint.X > newPoint.X)
+                            }
+                            else if (result.Direction.D == "L" || result.Direction.D == "R")
+                            {
+                                foreach (Point p in coordinates.Keys)
                                 {
-                                    if (coordinates.ContainsKey(new Point(lastPoint.Y))) Console.WriteLine("Found key");
-                                    lastPoint.X--;
+                                    if (p.Y == i)
+                                    {
+                                        Console.WriteLine("Found Y Coordinate to control: " + p.ToString());
+                                        if (coordinates[p].D == "U" && p.Y > result.Point.Y)
+                                        {
+                                            Console.WriteLine("Found a wire going up, while being lower than another wire.");
+                                            if (result.Direction.D == "L" && p.X < result.Point.X)
+                                            {
+                                                Console.WriteLine("Found a crossing wire, looking for cross point.");
+                                            }
+                                        }
+                                    }
                                 }
-                                break;
-                            case "R":
-                                diff = lastPoint.Y + newPoint.Y;
-                                while (lastPoint.Y < newPoint.Y)
-                                {
-                                    if (coordinates.ContainsKey(new Point(lastPoint.X))) Console.WriteLine("Found key");
-                                    lastPoint.Y++;
-                                }
-                                break;
-                            case "L":
-                                diff = lastPoint.Y - newPoint.Y;
-                                while (lastPoint.Y > newPoint.Y)
-                                {
-                                    if (coordinates.ContainsKey(new Point(lastPoint.X))) Console.WriteLine("Found key");
-                                    lastPoint.Y--;
-                                }
-                                break;
+                            }
                         }
+
+                        lastPoint = result.Point;
                     }
                 }
             }
