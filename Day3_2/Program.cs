@@ -56,20 +56,20 @@ namespace Day3_2
             switch (direction)
             {
                 case "U":
-                    x += distance;
-                    range = CreateRange(x, point.X);
-                    break;
-                case "D":
-                    x -= distance;
-                    range = CreateRange(x, point.X);
-                    break;
-                case "R":
                     y += distance;
                     range = CreateRange(y, point.Y);
                     break;
-                case "L":
+                case "D":
                     y -= distance;
                     range = CreateRange(y, point.Y);
+                    break;
+                case "R":
+                    x += distance;
+                    range = CreateRange(x, point.X);
+                    break;
+                case "L":
+                    x -= distance;
+                    range = CreateRange(x, point.X);
                     break;
             }
 
