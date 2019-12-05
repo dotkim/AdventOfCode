@@ -170,9 +170,82 @@ namespace Day3_2
             return manhtnrng;
         }
 
+        private static int Part2()
+        {
+            Dictionary<Point, string> coor = new Dictionary<Point, string>();
+            Point prpt;
+            coor.Add(new Point(0, 0), "0");
+
+            int wire = 1;
+
+            string[] FileContent = FileHandler.Read();
+            foreach (string line in FileContent)
+            {
+                prpt = new Point(0, 0);
+                int lnid = 1;
+                foreach (string mact in line.Split(","))
+                {
+                    Entry res = Parse(mact, prpt);
+
+                    if (wire == 1)
+                    {
+                        int[] rang = res.Range;
+                        string dir = res.Direction.D;
+
+                        foreach (int i in rang)
+                        {
+                            Point p = new Point();
+                            if (dir == "U" || dir == "D")
+                            {
+                                p = new Point(res.Point.X, i);
+                                if (!coor.ContainsKey(p)) coor.Add(p, lnid.ToString());
+                            }
+                            else if (dir == "L" || dir == "R")
+                            {
+                                p = new Point(i, res.Point.Y);
+                            }
+
+                            if (!coor.ContainsKey(p) && !p.IsEmpty) coor.Add(p, lnid.ToString());
+                        }
+                    }
+                    else
+                    {
+                        int[] rang = res.Range;
+                        string dir = res.Direction.D;
+
+                        foreach (int i in rang)
+                        {
+                            Point p = new Point();
+                            if (dir == "U" || dir == "D")
+                            {
+                                p = new Point(res.Point.X, i);
+                            }
+                            else if (dir == "L" || dir == "R")
+                            {
+                                p = new Point(i, res.Point.Y);
+                            }
+
+                            if (coor.ContainsKey(p) && !p.IsEmpty)
+                            {
+                                coor[p] = "X";
+                            }
+                        }
+                    }
+
+                    prpt = res.Point;
+                    lnid++;
+                }
+
+                wire++;
+            }
+
+            return manhtnrng;
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Part 1: " + Part1().ToString());
+            Console.WriteLine("Part 2: " + Part2().ToString());
         }
     }
 }
