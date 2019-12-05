@@ -2,7 +2,6 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace Day3_2
 {
@@ -87,67 +86,93 @@ namespace Day3_2
             return range;
         }
 
-        static void Main(string[] args)
+        private static int Part1()
         {
-            Dictionary<Point, Direction> coordinates = new Dictionary<Point, Direction>();
-            Point lastPoint;
-            int step = 0;
+            Dictionary<Point, string> coor = new Dictionary<Point, string>();
+            Point prpt;
+            coor.Add(new Point(0, 0), "0");
+
+            int wire = 1;
 
             string[] FileContent = FileHandler.Read();
             foreach (string line in FileContent)
             {
-                lastPoint = new Point(0, 0);
-                step++;
-                foreach (string action in line.Split(","))
+                prpt = new Point(0, 0);
+                int lnid = 1;
+                foreach (string mact in line.Split(","))
                 {
-                    Entry result = Parse(action, lastPoint);
+                    Entry res = Parse(mact, prpt);
 
-                    if ((step % 2) == 1)
+                    if (wire == 1)
                     {
-                        lastPoint = result.Point;
-                        coordinates.Add(result.Point, result.Direction);
-                    }
-                    else if ((step % 2) == 0)
-                    {
-                        int[] range = result.Range;
-                        
-                        for (int i = range[0]; i < range.Length; i++)
+                        int[] rang = res.Range;
+                        string dir = res.Direction.D;
+
+                        foreach (int i in rang)
                         {
-                            if (result.Direction.D == "U" || result.Direction.D == "D")
+                            Point p = new Point();
+                            if (dir == "U" || dir == "D")
                             {
-                                foreach (Point p in coordinates.Keys)
-                                {
-                                    if (p.X == i)
-                                    {
-                                        Console.WriteLine("Found X Coordinate to control: " + p.ToString());
-                                    }
-                                }
+                                p = new Point(res.Point.X, i);
+                                if (!coor.ContainsKey(p)) coor.Add(p, lnid.ToString());
                             }
-                            else if (result.Direction.D == "L" || result.Direction.D == "R")
+                            else if (dir == "L" || dir == "R")
                             {
-                                foreach (Point p in coordinates.Keys)
-                                {
-                                    if (p.Y == i)
-                                    {
-                                        Console.WriteLine("Found Y Coordinate to control: " + p.ToString());
-                                        if (coordinates[p].D == "U" && p.Y > result.Point.Y)
-                                        {
-                                            Console.WriteLine("Found a wire going up, while being lower than another wire.");
-                                            if (result.Direction.D == "L" && p.X < result.Point.X)
-                                            {
-                                                Console.WriteLine("Found a crossing wire, looking for cross point.");
-                                            }
-                                        }
-                                    }
-                                }
+                                p = new Point(i, res.Point.Y);
+                            }
+
+                            if (!coor.ContainsKey(p) && !p.IsEmpty) coor.Add(p, lnid.ToString());
+                        }
+                    }
+                    else
+                    {
+                        int[] rang = res.Range;
+                        string dir = res.Direction.D;
+
+                        foreach (int i in rang)
+                        {
+                            Point p = new Point();
+                            if (dir == "U" || dir == "D")
+                            {
+                                p = new Point(res.Point.X, i);
+                            }
+                            else if (dir == "L" || dir == "R")
+                            {
+                                p = new Point(i, res.Point.Y);
+                            }
+
+                            if (coor.ContainsKey(p) && !p.IsEmpty)
+                            {
+                                coor[p] = "X";
                             }
                         }
-
-                        lastPoint = result.Point;
                     }
+
+                    prpt = res.Point;
+                    lnid++;
+                }
+
+                wire++;
+            }
+
+            int manhtnrng = 0;
+
+            foreach (Point key in coor.Keys)
+            {
+                if (coor[key] == "X")
+                {
+                    int r = (Math.Abs(key.X) + Math.Abs(key.Y));
+                    if (manhtnrng == 0) manhtnrng = r;
+                    else manhtnrng = Math.Min(r, manhtnrng);
                 }
             }
 
+            return manhtnrng;
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Part 1: " + Part1().ToString());
         }
     }
 }
