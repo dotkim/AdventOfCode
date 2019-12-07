@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Day3_2
 {
@@ -183,6 +184,7 @@ namespace Day3_2
             {
                 prpt = new Point(0, 0);
                 int lnid = 1;
+                int range = 0;
                 foreach (string mact in line.Split(","))
                 {
                     Entry res = Parse(mact, prpt);
@@ -211,6 +213,7 @@ namespace Day3_2
                     else
                     {
                         int[] rang = res.Range;
+                        range += rang.Length;
                         string dir = res.Direction.D;
 
                         foreach (int i in rang)
@@ -227,7 +230,7 @@ namespace Day3_2
 
                             if (coor.ContainsKey(p) && !p.IsEmpty)
                             {
-                                coor[p] = "X";
+                                coor[p] = "X" + range.ToString();
                             }
                         }
                     }
@@ -239,10 +242,43 @@ namespace Day3_2
                 wire++;
             }
 
-            return manhtnrng;
+            string lineid = null
+            int jumps = 0;
+            int minjumps = 0;
+            foreach (Point key in coor.Keys)
+            {
+                jumps++;
+                if (coor[key] == "0") continue;
+                if (lineid == null) lineid = coor[key];
+                if (coor[key].StartsWith("X"))
+                {
+                    List<Point> line = new List<Point>();
+                    line.Add(coor[key]);
+                    foreach (Point p in coor.Keys)
+                    {
+                        if (Int32.Parse(coor[p]) =< Int32.Parse(lineid)) line.Add(p);
+                    }
+                    line.OrderBy(p => p.X).ThenBy(p => p.Y);
+                    foreach (Point p in line)
+                    {
+                        if (p == key) break;
+                    }
+                    Int32.TryParse(coor[key][1..], out int j);
+                    jumps += j;
+                    if (minjumps == 0) minjumps = jumps;
+                    else minjumps = Math.Min(minjumps, jumps);
+                    lineid = null;
+                }
+                else
+                {
+                    lineid = coor[key];
+                }
+            }
+
+            return minjumps;
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
             Console.WriteLine("Part 1: " + Part1().ToString());
             Console.WriteLine("Part 2: " + Part2().ToString());
