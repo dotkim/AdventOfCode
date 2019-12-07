@@ -65,6 +65,28 @@ namespace Day6
 
             totalOrbits += orbitmap.Count - 1;
             Console.WriteLine("Part 1: " + totalOrbits.ToString());
+
+            Orbit you = orbitmap["YOU"];
+            Orbit san = orbitmap["SAN"];
+            string direct = san.Direct;
+            List<string> sanPath = new List<string>();
+            while (direct != "None")
+            {
+                sanPath.Add(direct);
+                direct = orbitmap[direct].Direct;
+            }
+
+            direct = you.Direct;
+            List<string> youPath = new List<string>();
+            while (!sanPath.Contains(direct))
+            {
+                youPath.Add(direct);
+                direct = orbitmap[direct].Direct;
+            }
+
+            int ind = sanPath.IndexOf(direct);
+            int totalHops = sanPath.GetRange(0, ind).Count + youPath.Count;
+            Console.WriteLine("Part 2: " + totalHops.ToString());
         }
     }
 }
