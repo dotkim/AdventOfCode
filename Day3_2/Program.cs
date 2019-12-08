@@ -95,7 +95,8 @@ namespace Day3_2
 
             int wire = 1;
 
-            string[] FileContent = FileHandler.Read();
+            //string[] FileContent = FileHandler.Read();
+            string[] FileContent = "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83".Split("\n");
             foreach (string line in FileContent)
             {
                 prpt = new Point(0, 0);
@@ -242,12 +243,12 @@ namespace Day3_2
                 wire++;
             }
 
-            string lineid = null
+            string lineid = null;
             int jumps = 0;
             int minjumps = 0;
             foreach (Point key in coor.Keys)
             {
-                jumps++;
+               /* jumps++;
                 if (coor[key] == "0") continue;
                 if (lineid == null) lineid = coor[key];
                 if (coor[key].StartsWith("X"))
@@ -272,7 +273,7 @@ namespace Day3_2
                 else
                 {
                     lineid = coor[key];
-                }
+                }*/
             }
 
             return minjumps;
