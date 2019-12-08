@@ -9,6 +9,8 @@ namespace Day3
         public int ID { get; set; }
         public Dictionary<Coordinate, Point> Coordinates { get; set; }
         private Program.Wire Wire { get; set; }
+        public Coordinate Start { get; set; }
+        public Coordinate End { get; set; }
         public int Lenght { get; set; }
 
         public Line(int id, Program.Wire w)
@@ -22,10 +24,18 @@ namespace Day3
         public void Add(Point p)
         {
             Dictionary<Coordinate, Point> wireCoordinates = Wire.GetCoordinates();
-            if (!wireCoordinates.ContainsKey(p.Coordinate)) { Coordinates.Add(p.Coordinate, p); }
-            Lenght++;
+            if (!wireCoordinates.ContainsKey(p.Coordinate)) {
+                Coordinates.Add(p.Coordinate, p);
+            }
+            if (Coordinates.Count == 0) Start = p.Coordinate;
+            End = p.Coordinate;
+            Lenght = Math.Abs(Start.X - End.X) + Math.Abs(Start.Y - End.Y);
         }
         public Dictionary<Coordinate, Point> Get() { return Coordinates; }
+        public int GetCrossLength(Coordinate cross)
+        {
+            return Math.Abs(Start.X - cross.X) + Math.Abs(Start.Y - cross.Y);
+        }
     }
 
     class Point
@@ -133,10 +143,7 @@ namespace Day3
 
         static void Main(string[] args)
         {
-            string[] commands;
-            //if (args.Length == 0) commands = "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83".Split("\n");
-            if (args.Length == 0) commands = "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7".Split("\n");
-            else commands = File.ReadAllLines(@"C:\Github\AdventOfCode\Day3\cables.txt");
+            string[] commands = File.ReadAllLines(@"C:\Github\AdventOfCode\Day3\cables.txt");
 
             List<Wire> wires = new List<Wire>();
 
@@ -217,44 +224,29 @@ namespace Day3
             Console.WriteLine("Part 1: " + range.ToString());
 
             int minRange = 0;
+            Dictionary<int, Line> w1lines = wires[0].GetLines();
+            Dictionary<int, Line> w2lines = wires[1].GetLines();
             foreach (Coordinate coor in wire1.Keys)
             {
-                Dictionary<int, Line> w1lines = wires[0].GetLines();
-                Dictionary<int, Line> w2lines = wires[1].GetLines();
-
                 if (wire1[coor].Cross)
                 {
-                    int w1line = wire1[coor].Line.ID-1;
-                    int w1len = 0;
+                    int w1line = wire1[coor].Line.ID - 1;
+                    int crosslen = w1lines[w1line + 1].GetCrossLength(coor);
+                    int w1len = crosslen;
                     while (w1line != 0)
                     {
-                        w1len += w1lines[w1line - 1].Lenght;
+                        w1len += w1lines[w1line].Lenght;
                         w1line = w1lines[w1line - 1].ID;
                     }
 
-                    int steps = 0;
-                    foreach (Coordinate c in w1lines[w1line+1].Coordinates.Keys)
-                    {
-                        steps++;
-                        if (c.Equals(coor)) break;
-                    }
-                    w1len += steps;
-
-                    int w2line = wire2[coor].Line.ID-1;
-                    int w2len = 0;
+                    int w2line = wire2[coor].Line.ID - 1;
+                    crosslen = w2lines[w2line + 1].GetCrossLength(coor);
+                    int w2len = crosslen;
                     while (w2line != 0)
                     {
-                        w2len += w2lines[w2line - 1].Lenght;
+                        w2len += w2lines[w2line].Lenght;
                         w2line = w2lines[w2line - 1].ID;
                     }
-
-                    steps = 0;
-                    foreach (Coordinate c in w2lines[w2line + 1].Coordinates.Keys)
-                    {
-                        steps++;
-                        if (c.Equals(coor)) break;
-                    }
-                    w2len += steps;
 
                     if (minRange == 0) minRange = w1len + w2len;
                     else minRange = Math.Min(minRange, (w1len + w2len));
