@@ -6,9 +6,12 @@ namespace Day8
 {
     class Layer
     {
+        public int ID { get; set; }
         private Dictionary<int, int> Count { get; set; }
+        public string Data { get; set; }
         public Layer(string l)
         {
+            Data = l;
             Count = new Dictionary<int, int>();
             foreach (char num in l)
             {
@@ -35,36 +38,40 @@ namespace Day8
             int width = 25;
             int height = 6;
 
-            Dictionary<string, Layer> layers = new Dictionary<string, Layer>();
+            Dictionary<int, Layer> layers = new Dictionary<int, Layer>();
 
-            for (int y = 0; height > y; y++)
+            int id = 1;
+            int lSize = width * height;
+            for (int i = 0; image.Length > i; i += lSize)
             {
-                for (int x = 0*y; width > x; x++)
-                {
-                    string layer = image.Substring(x, width);
-                    if (!layers.ContainsKey(layer)) layers.Add(layer, new Layer(layer));
-                }
+                int end = i + lSize;
+                string layer = image[i..end];
+                layers.Add(id, new Layer(layer));
+                id++;
             }
 
-            string check = "";
+            int check = 0;
             int n = 0;
-            foreach (string layer in layers.Keys)
+            foreach (int lid in layers.Keys)
             {
-                int c = layers[layer].GetCount()[0];
+                int c = layers[lid].GetCount()[0];
                 if (n == 0)
                 {
                     n = c;
-                    check = layer;
+                    check = lid;
                 }
                 else if (c < n) {
                     n = c;
-                    check = layer;
+                    check = lid;
                 }
             }
 
             Dictionary<int, int> count = layers[check].GetCount();
             int output = count[1] * count[2];
             Console.WriteLine("Part 1: " + output.ToString());
+
+
+
         }
     }
 }
