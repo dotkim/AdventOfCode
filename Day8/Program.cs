@@ -33,8 +33,7 @@ namespace Day8
     {
         static void Main()
         {
-            string image = File.ReadAllLines(@"C:\Github\AdventOfCode\Day8\image.txt")[0];
-            //string image = "123456789012";
+            string imageData = File.ReadAllLines(@"C:\Github\AdventOfCode\Day8\image.txt")[0];
             int width = 25;
             int height = 6;
 
@@ -42,10 +41,10 @@ namespace Day8
 
             int id = 1;
             int lSize = width * height;
-            for (int i = 0; image.Length > i; i += lSize)
+            for (int i = 0; imageData.Length > i; i += lSize)
             {
                 int end = i + lSize;
-                string layer = image[i..end];
+                string layer = imageData[i..end];
                 layers.Add(id, new Layer(layer));
                 id++;
             }
@@ -70,8 +69,24 @@ namespace Day8
             int output = count[1] * count[2];
             Console.WriteLine("Part 1: " + output.ToString());
 
+            List<String> image = new List<string>();
+            string pixels = "";
 
+            foreach (int lid in layers.Keys)
+            {
+                string layer = layers[lid].Data;
 
+                foreach (char pixel in layer)
+                {
+                    if (pixels.Length == width)
+                    {
+                        image.Add(pixels);
+                        Console.WriteLine(pixels);
+                        pixels = "";
+                    }
+                    if (!pixel.Equals('2')) pixels += pixel.ToString();
+                }
+            }
         }
     }
 }
