@@ -1,76 +1,106 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Day5
 {
-    class FileHandler
+    class Instruction
     {
-        private String Path { get; set; }
-
-        public FileHandler(string path)
+        private string[] IntCode { get; set; }
+        public Instruction(string[] ic, string noun = "", string verb = "")
         {
-            Path = path;
-        }
-
-        public string Read()
-        {
-            return File.ReadAllText(Path);
-        }
-
-        public int[] ParseIntArray(string data)
-        {
-            if (data == "") return new int[1] { 99 };
-            return Array.ConvertAll(data.Split(','), int.Parse);
-        }
-    }
-
-    static class Part1
-    {
-        static public int Process(int[] codes, int noun, int verb)
-        {
-            int[] clone = new int[codes.Length];
-            codes.CopyTo(clone, 0);
-
-            clone[1] = noun;
-            clone[2] = verb;
-
-            for (int i = 0; i < clone.Length; i += 4)
+            IntCode = ic;
+            if (noun != "" & verb != "")
             {
-                if (clone[i] == 99) break;
+                IntCode[1] = noun;
+                IntCode[2] = verb;
+            }
+        }
 
-                int pos1 = clone[i + 1];
-                int pos2 = clone[i + 2];
-                int pos3 = clone[i + 3];
+        public int Process()
+        {
+            string[] input = new string[IntCode.Length];
+            IntCode.CopyTo(input, 0);
 
-                if (clone[i] == 1)
-                {
-                    clone[pos3] = clone[pos1] + clone[pos2];
-                }
-                else if (clone[i] == 2)
-                {
-                    clone[pos3] = clone[pos1] * clone[pos2];
-                }
-                else if (clone[i] == 3)
-                {
+            for (int i = 0; i < input.Length; i += 4)
+            {
+                string oper = new Op().Parse(input[i]);
+                if (oper == "EXIT") break;
 
-                }
-                else if (clone[i] == 4)
-                {
+                int[] sections = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
 
+                int[] positions = new int[3];
+
+                for (int index = 0; index < positions.Length; index++)
+                {
+                    positions[index] = Int32.Parse(input[sections[index]]);
                 }
+
+                input[sections[2]] = new Compute(positions[0], positions[1])
+                    .Get(oper)
+                    .Invoke()
+                    .ToString();
             }
 
-            return clone[0];
+            return Int32.Parse(input[0]);
         }
     }
+
+    class Op
+    {
+        public Dictionary<string, string> Code = new Dictionary<string, string>
+        {
+            { "01", "ADD" },
+            { "02", "MUL" },
+            { "03", "STDIN" },
+            { "04", "STDOUT" },
+            { "99", "EXIT" },
+            { "00", "UNKNOWN" }
+        };
+
+        public string Parse(string c)
+        {
+            if (c.Length == 1) c = "0" + c;
+            if (Code.ContainsKey(c)) return Code[c];
+            return Code["00"];
+        }
+    }
+
+    class Compute
+    {
+        private int Input { get; set; }
+        private int Num { get; set; }
+
+        private Dictionary<string, Func<int>> Actions = new Dictionary<string, Func<int>>();
+
+        public Compute(int i, int n)
+        {
+            Input = i;
+            Num = n;
+            Actions.Add("ADD", Add);
+            Actions.Add("MUL", Multiply);
+        }
+
+        public int Add()
+        {
+            return Input + Num;
+        }
+
+        public int Multiply()
+        {
+            return Input * Num;
+        }
+
+        public Func<int> Get(string key) { return Actions[key]; }
+    }
+
     class Program
     {
-        private static readonly FileHandler FileHandler = new FileHandler(@"C:\Github\AdventOfCode\Day5\IntCodes.txt");
-        static void Main(string[] args)
+        static void Main()
         {
-            string File = FileHandler.Read();
-            int[] IntCodes = FileHandler.ParseIntArray(File);
-            Console.WriteLine("Part 1: " + Part1.Process(IntCodes, 0, 0));
+            string fileContent = File.ReadAllText(@"C:\Github\AdventOfCode\Day2\IntCode.txt");
+            string[] input = fileContent.Split(',');
+            Console.WriteLine("Part 1: " + new Instruction(input, "12", "2").Process().ToString());
         }
     }
 }
