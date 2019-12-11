@@ -7,54 +7,77 @@ namespace Day5
     class Instruction
     {
         private string[] IntCode { get; set; }
-        public Instruction(string[] ic, string noun = "", string verb = "")
+        public Instruction(string[] ic)
         {
             IntCode = ic;
-            if (noun != "" & verb != "")
-            {
-                IntCode[1] = noun;
-                IntCode[2] = verb;
-            }
         }
 
-        public int Process()
+        public int Process(string noun = "", string verb = "")
         {
             string[] input = new string[IntCode.Length];
             IntCode.CopyTo(input, 0);
 
+            if (noun != "" & verb != "")
+            {
+                input[1] = noun;
+                input[2] = verb;
+            }
+
+            Opcodes opcodes = new Opcodes();
+            Compute compute = new Compute();
+
             for (int i = 0; i < input.Length; i += 4)
             {
-                string oper = new Op().Parse(input[i]);
-                if (oper == "EXIT") break;
+                string operation = opcodes.Parse(input[i]);
+                if (operation == "HALT") break;
 
-                int[] sections = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
+                int[] positions = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
 
-                int[] positions = new int[3];
-
-                for (int index = 0; index < positions.Length; index++)
+                int[] sections = new int[3];
+                for (int index = 0; index < sections.Length; index++)
                 {
-                    positions[index] = Int32.Parse(input[sections[index]]);
+                    sections[index] = Int32.Parse(input[positions[index]]);
                 }
 
-                input[sections[2]] = new Compute(positions[0], positions[1])
-                    .Get(oper)
-                    .Invoke()
+                input[positions[2]] = compute
+                    .Get(operation)
+                    .Invoke(sections[0], sections[1])
                     .ToString();
             }
 
             return Int32.Parse(input[0]);
         }
+
+        public int FindCombination(int num)
+        {
+            int verb = 0;
+            int noun;
+
+            int sum = 0;
+
+            for (noun = 0; noun <= 99; noun++)
+            {
+                if (sum == num) return (100 * noun) + verb;
+                for (verb = 0; verb <= 99; verb++)
+                {
+                    sum = Process(noun.ToString(), verb.ToString());
+                    if (sum == num) return (100 * noun) + verb;
+                }
+            }
+
+            return 0;
+        }
     }
 
-    class Op
+    class Opcodes
     {
-        public Dictionary<string, string> Code = new Dictionary<string, string>
+        private Dictionary<string, string> Code = new Dictionary<string, string>
         {
             { "01", "ADD" },
             { "02", "MUL" },
-            { "03", "STDIN" },
-            { "04", "STDOUT" },
-            { "99", "EXIT" },
+            { "03", "IN" },
+            { "04", "OUT" },
+            { "99", "HALT" },
             { "00", "UNKNOWN" }
         };
 
@@ -68,39 +91,42 @@ namespace Day5
 
     class Compute
     {
-        private int Input { get; set; }
-        private int Num { get; set; }
+        private Dictionary<string, Func<int, int, int>> Actions = new Dictionary<string, Func<int, int, int>>();
 
-        private Dictionary<string, Func<int>> Actions = new Dictionary<string, Func<int>>();
-
-        public Compute(int i, int n)
+        public Compute()
         {
-            Input = i;
-            Num = n;
             Actions.Add("ADD", Add);
             Actions.Add("MUL", Multiply);
         }
 
-        public int Add()
+        public int Add(int n1, int n2)
         {
-            return Input + Num;
+            return n1 + n2;
         }
 
-        public int Multiply()
+        public int Multiply(int n1, int n2)
         {
-            return Input * Num;
+            return n1 * n2;
         }
 
-        public Func<int> Get(string key) { return Actions[key]; }
+        public Func<int, int, int> Get(string key) { return Actions[key]; }
     }
 
     class Program
     {
+        private static string[] GetFile(string file) { return File.ReadAllText(file).Split(","); }
+        
+        private static void TEST()
+        {
+            // Thermal Environment Supervision Terminal
+            string[] input = GetFile(@"C:\Github\AdventOfCode\Day5\IntCodes.txt");
+            Instruction instruction = new Instruction(input);
+            Console.WriteLine("Day 5, Part 1:\t" + instruction.Process().ToString());
+        }
+
         static void Main()
         {
-            string fileContent = File.ReadAllText(@"C:\Github\AdventOfCode\Day2\IntCode.txt");
-            string[] input = fileContent.Split(',');
-            Console.WriteLine("Part 1: " + new Instruction(input, "12", "2").Process().ToString());
+            TEST();
         }
     }
 }
