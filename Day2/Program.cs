@@ -1,75 +1,66 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Day2
 {
-    class FileHandler
+    class Instruction
     {
-        private String Path { get; set; }
-
-        public FileHandler(string path)
+        private string[] IntCode { get; set; }
+        public Instruction(string[] ic)
         {
-            Path = path;
+            IntCode = ic;
         }
 
-        public string Read()
+        public int Process(string noun = "", string verb = "")
         {
-            return File.ReadAllText(Path);
-        }
+            string[] input = new string[IntCode.Length];
+            IntCode.CopyTo(input, 0);
 
-        public int[] ParseIntArray(string data)
-        {
-            if (data == "") return new int[1] {99};
-            return Array.ConvertAll(data.Split(','), int.Parse);
-        }
-    }
-
-    static class Part1
-    {
-        static public int Process(int[] codes, int noun, int verb)
-        {
-            int[] clone = new int[codes.Length];
-            codes.CopyTo(clone, 0);
-
-            clone[1] = noun;
-            clone[2] = verb;
-
-            for (int i = 0; i < clone.Length; i += 4)
+            if (noun != "" & verb != "")
             {
-                if (clone[i] == 99) break;
-
-                int pos1 = clone[i + 1];
-                int pos2 = clone[i + 2];
-                int pos3 = clone[i + 3];
-
-                if (clone[i] == 1)
-                {
-                    clone[pos3] = clone[pos1] + clone[pos2];
-                }
-                else if (clone[i] == 2)
-                {
-                    clone[pos3] = clone[pos1] * clone[pos2];
-                }
+                input[1] = noun;
+                input[2] = verb;
             }
 
-            return clone[0];
-        }
-    }
+            Opcodes opcodes = new Opcodes();
+            Compute compute = new Compute();
 
-    static class Part2
-    {
-        static public int BruteForce(int[] codes, int num)
+            for (int i = 0; i < input.Length; i += 4)
+            {
+                string operation = opcodes.Parse(input[i]);
+                if (operation == "HALT") break;
+
+                int[] positions = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
+
+                int[] sections = new int[3];
+                for (int index = 0; index < sections.Length; index++)
+                {
+                    sections[index] = Int32.Parse(input[positions[index]]);
+                }
+
+                input[positions[2]] = compute
+                    .Get(operation)
+                    .Invoke(sections[0], sections[1])
+                    .ToString();
+            }
+
+            return Int32.Parse(input[0]);
+        }
+
+        public int FindCombination(int num)
         {
             int verb = 0;
-            int sum = 0;
             int noun;
+
+            int sum = 0;
 
             for (noun = 0; noun <= 99; noun++)
             {
                 if (sum == num) return (100 * noun) + verb;
                 for (verb = 0; verb <= 99; verb++)
                 {
-                    sum = Part1.Process(codes, noun, verb);
+                    sum = Process(noun.ToString(), verb.ToString());
                     if (sum == num) return (100 * noun) + verb;
                 }
             }
@@ -78,15 +69,65 @@ namespace Day2
         }
     }
 
+    class Opcodes
+    {
+        private Dictionary<string, string> Code = new Dictionary<string, string>
+        {
+            { "01", "ADD" },
+            { "02", "MUL" },
+            { "03", "IN" },
+            { "04", "OUT" },
+            { "99", "HALT" },
+            { "00", "UNKNOWN" }
+        };
+
+        public string Parse(string c)
+        {
+            if (c.Length == 1) c = "0" + c;
+            if (Code.ContainsKey(c)) return Code[c];
+            return Code["00"];
+        }
+    }
+
+    class Compute
+    {
+        private Dictionary<string, Func<int, int, int>> Actions = new Dictionary<string, Func<int, int, int>>();
+
+        public Compute()
+        {
+            Actions.Add("ADD", Add);
+            Actions.Add("MUL", Multiply);
+        }
+
+        public int Add(int n1, int n2)
+        {
+            return n1 + n2;
+        }
+
+        public int Multiply(int n1, int n2)
+        {
+            return n1 * n2;
+        }
+
+        public Func<int, int, int> Get(string key) { return Actions[key]; }
+    }
+
     class Program
     {
-        private static readonly FileHandler FileHandler = new FileHandler("C:\\Github\\AdventOfCode\\Day2\\IntCode.txt");
-        static void Main(string[] args)
+        private static string[] GetFile(string file) { return File.ReadAllText(file).Split(","); }
+
+        private static void GA()
         {
-            string File = FileHandler.Read();
-            int[] IntCodes = FileHandler.ParseIntArray(File);
-            Console.WriteLine("Part 1: " + Part1.Process(IntCodes, 12, 2).ToString());
-            Console.WriteLine("Part 2: " + Part2.BruteForce(IntCodes, 19690720).ToString());
+            // Gravity Assist
+            string[] input = GetFile(@"C:\Github\AdventOfCode\Day2\IntCode.txt");
+            Instruction instruction = new Instruction(input);
+            Console.WriteLine("Day 2, Part 1:\t" + instruction.Process("12", "2").ToString());
+            Console.WriteLine("Day 2, Part 2:\t" + instruction.FindCombination(19690720).ToString());
+        }
+
+        static void Main()
+        {
+            GA();
         }
     }
 }
