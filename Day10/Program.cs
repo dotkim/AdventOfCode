@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Day10
 {
@@ -8,19 +9,18 @@ namespace Day10
     {
         class Asteroid
         {
-            private Point Location { get; set; }
+            public Point Location { get; set; }
 
-            private List<Point> VisiblePoints = new List<Point>();
+            public List<Asteroid> Neighbours = new List<Asteroid>();
 
             public Asteroid(Point p)
             {
                 Location = p;
             }
 
-            public int AddVisible(Point p)
+            public int SetVisible(Asteroid asteroid)
             {
-                VisiblePoints.Add(p);
-                return VisiblePoints.Count;
+                return Neighbours.Count;
             }
         }
 
@@ -59,8 +59,9 @@ namespace Day10
                 int highestCount = 0;
                 foreach (Asteroid asteroid in Asteroids)
                 {
-
+                    asteroid.Neighbours.AddRange(Asteroids.Where(ast => ast.Location != asteroid.Location));
                 }
+                return new Asteroid(new Point(0, 0));
             }
         }
 
@@ -68,6 +69,7 @@ namespace Day10
         {
             string[] input = ".#..#\n.....\n#####\n....#\n...##".Split("\n");
             Map map = new Map(input);
+            map.Process();
         }
     }
 }
