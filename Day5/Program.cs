@@ -4,18 +4,18 @@ using System.Collections.Generic;
 
 namespace Day5
 {
-    class Instruction
+    class IntegerComputer
     {
-        private string[] IntCode { get; set; }
-        public Instruction(string[] ic)
+        private string[] Code { get; set; }
+        public IntegerComputer(string[] ic)
         {
-            IntCode = ic;
+            Code = ic;
         }
 
         public int Process(string noun = "", string verb = "")
         {
-            string[] input = new string[IntCode.Length];
-            IntCode.CopyTo(input, 0);
+            string[] input = new string[Code.Length];
+            Code.CopyTo(input, 0);
 
             if (noun != "" & verb != "")
             {
@@ -23,12 +23,17 @@ namespace Day5
                 input[2] = verb;
             }
 
-            Opcodes opcodes = new Opcodes();
+            Opcode opcode = new Opcode();
             Compute compute = new Compute();
-
-            for (int i = 0; i < input.Length; i += 4)
+            int i = 0;
+            //for (int i = 0; i < input.Length; i += 4)
+            while (i < input.Length)
             {
-                string operation = opcodes.Parse(input[i]);
+                Instruction instruction = new Instruction(input[i..(i + 4)]);
+
+                //old code
+                string operation = opcode.Parse(input[i]);
+                if (operation == "IN") Console.ReadLine();
                 if (operation == "HALT") break;
 
                 int[] positions = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
@@ -43,6 +48,8 @@ namespace Day5
                     .Get(operation)
                     .Invoke(sections[0], sections[1])
                     .ToString();
+
+                i += instruction.
             }
 
             return Int32.Parse(input[0]);
@@ -69,7 +76,47 @@ namespace Day5
         }
     }
 
-    class Opcodes
+    class Instruction
+    {
+        public string Operation { get; }
+        public int Next { get; }
+        private Opcode OperationCodes = new Opcode();
+        private List<Parameter> Parameters { get; set; }
+
+        public Instruction(string[] instruction)
+        {
+            Operation = OperationCodes.Parse(instruction[0]);
+            if (Operation == "IN" | Operation == "OUT")
+            {
+                Next = 2;
+                int[] para = new int[2] { Int32.Parse(instruction[1]), 0 };
+                Parameters.Add(new Parameter(para));
+            }
+            else
+            {
+                Next = 4;
+                foreach (KeyValuePair<int, int> prm in OperationCodes.GetParameterModes(instruction[0]))
+                {
+
+                }
+            }
+
+        }
+    }
+
+    class Parameter
+    {
+        public int Mode { get; }
+        public int Value { get; }
+
+        public Parameter(int[] values, int mode = 0)
+        {
+            Mode = mode;
+            Value = values[Mode];
+        }
+    }
+
+    class Opcode
     {
         private Dictionary<string, string> Code = new Dictionary<string, string>
         {
@@ -86,6 +133,24 @@ namespace Day5
             if (c.Length == 1) c = "0" + c;
             if (Code.ContainsKey(c)) return Code[c];
             return Code["00"];
+        }
+
+        public SortedDictionary<int, int> GetParameterModes(string c)
+        {
+            SortedDictionary<int, int> dict = new SortedDictionary<int, int>();
+            if (c.Length <= 1) return dict;
+            //{ 1, Int32.Parse(c[^2].ToString()) }
+            char[] reverse = c.ToCharArray();
+            Array.Reverse(reverse);
+
+            int i = 0;
+            foreach (char r in reverse[0..^1])
+            {
+                i++;
+                dict.Add(i, Int32.Parse(r.ToString()));
+            }
+
+            return dict;
         }
     }
 
@@ -115,12 +180,12 @@ namespace Day5
     class Program
     {
         private static string[] GetFile(string file) { return File.ReadAllText(file).Split(","); }
-        
+
         private static void TEST()
         {
             // Thermal Environment Supervision Terminal
             string[] input = GetFile(@"C:\Github\AdventOfCode\Day5\IntCodes.txt");
-            Instruction instruction = new Instruction(input);
+            IntegerComputer instruction = new IntegerComputer(input);
             Console.WriteLine("Day 5, Part 1:\t" + instruction.Process().ToString());
         }
 
