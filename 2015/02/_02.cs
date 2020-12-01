@@ -2,9 +2,9 @@ using System;
 
 namespace Aoc
 {
-  public static class DayTwo
+  public static class _02
   {
-    public static void RunFirstAndSecond()
+    public static void Run()
     {
       string[] input = FileHelper.GetInput(@"./02/input").Split("\n");
       int feetToOrder = 0;
@@ -32,8 +32,8 @@ namespace Aoc
         ribbonToOrder += ribbon + bow;
       }
 
-      Console.WriteLine($"Day 2.1: The elves should order a total {feetToOrder} sq.ft. of wrapping paper.");
-      Console.WriteLine($"Day 2.2: The elves should order a total {ribbonToOrder} ft. of ribbon.");
+      Console.WriteLine($"Day 2.1:\tThe elves should order a total {feetToOrder} sq.ft. of wrapping paper.");
+      Console.WriteLine($"Day 2.2:\tThe elves should order a total {ribbonToOrder} ft. of ribbon.");
     }
 
   }

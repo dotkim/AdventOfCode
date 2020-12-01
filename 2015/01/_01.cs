@@ -2,9 +2,9 @@ using System;
 
 namespace Aoc
 {
-  public static class DayOne
+  public static class _01
   {
-    public static void RunFirstAndSecond()
+    public static void Run()
     {
       string input = FileHelper.GetInput(@"./01/input");
       int floor = 0;
@@ -22,8 +22,8 @@ namespace Aoc
         }
       }
 
-      Console.WriteLine($"Day 1.1: Santa will go to floor {floor.ToString()}");
-      Console.WriteLine($"Day 1.2: Santa entered the basement at character {FirstBasementValue}");
+      Console.WriteLine($"Day 1.1:\tSanta will go to floor {floor.ToString()}");
+      Console.WriteLine($"Day 1.2:\tSanta entered the basement at character {FirstBasementValue}");
     }
 
   }
