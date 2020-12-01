@@ -12,71 +12,67 @@ namespace Day5
             Code = ic;
         }
 
-        public int Process()
+        public int Process(string noun = "", string verb = "")
         {
-            string[] code = new string[Code.Length];
-            Code.CopyTo(code, 0);
+            string[] input = new string[Code.Length];
+            Code.CopyTo(input, 0);
 
+            if (noun != "" & verb != "")
+            {
+                input[1] = noun;
+                input[2] = verb;
+            }
+
+            Opcode opcode = new Opcode();
             Compute compute = new Compute();
-
             int i = 0;
             //for (int i = 0; i < input.Length; i += 4)
-            while (i < code.Length)
+            while (i < input.Length)
             {
-                Instruction instruction = new Instruction(code[i..(i + 4)]);
-
-                if (instruction.Operation == "IN")
-                {
-                    //Console.Write("The program requires an input, please provide a number: ");
-                    //string input = Console.ReadLine();
-                    string input = "1";
-                    code[Int32.Parse(code[i + 1])] = input;
-                    i += instruction.Next;
-                    continue;
-                }
-
-                int position = Int32.Parse(code[i + 4]);
-                List<Parameter> parameters = instruction.GetParameters();
-
-                foreach (Parameter parameter in parameters)
-                {
-                    if (parameter.Mode == 0)
-                    {
-                        parameter.Value = Int32.Parse(code[parameter.Value]);
-                    }
-                    /*else if (parameter.Mode == 1)
-                    {
-                        code[i + parameter.Number] = parameter.Value.ToString();
-                    }*/
-                }
-
-                code[position] = compute
-                    .Get(instruction.Operation)
-                    .Invoke(parameters[0].Value, parameters[1].Value)
-                    .ToString();
-
-                i += instruction.Next;
+                Instruction instruction = new Instruction(input[i..(i + 4)]);
 
                 //old code
-                /*string operation = opcode.Parse(code[i]);
+                string operation = opcode.Parse(input[i]);
                 if (operation == "IN") Console.ReadLine();
                 if (operation == "HALT") break;
 
-                int[] positions = Array.ConvertAll(code[(i + 1)..(i + 4)], Int32.Parse);
+                int[] positions = Array.ConvertAll(input[(i + 1)..(i + 4)], Int32.Parse);
 
                 int[] sections = new int[3];
                 for (int index = 0; index < sections.Length; index++)
                 {
-                    sections[index] = Int32.Parse(code[positions[index]]);
+                    sections[index] = Int32.Parse(input[positions[index]]);
                 }
 
-                code[positions[2]] = compute
+                input[positions[2]] = compute
                     .Get(operation)
                     .Invoke(sections[0], sections[1])
-                    .ToString();*/
+                    .ToString();
+
+                i += instruction.
             }
 
-            return Int32.Parse(code[0]);
+            return Int32.Parse(input[0]);
+        }
+
+        public int FindCombination(int num)
+        {
+            int verb = 0;
+            int noun;
+
+            int sum = 0;
+
+            for (noun = 0; noun <= 99; noun++)
+            {
+                if (sum == num) return (100 * noun) + verb;
+                for (verb = 0; verb <= 99; verb++)
+                {
+                    sum = Process(noun.ToString(), verb.ToString());
+                    if (sum == num) return (100 * noun) + verb;
+                }
+            }
+
+            return 0;
         }
     }
 
@@ -85,7 +81,7 @@ namespace Day5
         public string Operation { get; }
         public int Next { get; }
         private Opcode OperationCodes = new Opcode();
-        private List<Parameter> Parameters { get; set; } = new List<Parameter>();
+        private List<Parameter> Parameters { get; set; }
 
         public Instruction(string[] instruction)
         {
@@ -93,46 +89,30 @@ namespace Day5
             if (Operation == "IN" | Operation == "OUT")
             {
                 Next = 2;
-                int prm = Int32.Parse(instruction[1]);
-                Parameters.Add(new Parameter(1, prm));
+                int[] para = new int[2] { Int32.Parse(instruction[1]), 0 };
+                Parameters.Add(new Parameter(para));
             }
             else
             {
                 Next = 4;
-                SortedDictionary<int, int> modes = OperationCodes.GetParameterModes(instruction[0]);
-                if (modes.Count != 0)
+                foreach (KeyValuePair<int, int> prm in OperationCodes.GetParameterModes(instruction[0]))
                 {
-                    foreach (KeyValuePair<int, int> prm in modes)
-                    {
-                        Parameters.Add(new Parameter(prm.Key, Int32.Parse(instruction[prm.Key]), prm.Value));
-                    }
-                }
-                else
-                {
-                    int i = 1;
-                    foreach (string prm in instruction[1..])
-                    {
-                        Parameters.Add(new Parameter(i, Int32.Parse(prm), 0));
-                        i ++;
-                    }
+
                 }
             }
-        }
 
-        public List<Parameter> GetParameters() { return Parameters; }
+        }
     }
 
     class Parameter
     {
-        public int Number { get; }
         public int Mode { get; }
-        public int Value { get; set; }
+        public int Value { get; }
 
-        public Parameter(int number, int value, int mode = 0)
+        public Parameter(int[] values, int mode = 0)
         {
-            Number = number;
-            Value = value;
             Mode = mode;
+            Value = values[Mode];
         }
     }
 
@@ -159,6 +139,7 @@ namespace Day5
         {
             SortedDictionary<int, int> dict = new SortedDictionary<int, int>();
             if (c.Length <= 1) return dict;
+            //{ 1, Int32.Parse(c[^2].ToString()) }
             char[] reverse = c.ToCharArray();
             Array.Reverse(reverse);
 
