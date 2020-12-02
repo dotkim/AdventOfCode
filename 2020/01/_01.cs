@@ -33,7 +33,7 @@ namespace Aoc
           }
         }
         if (flag) break;
-      }      
+      }
     }
-}
+  }
 }
