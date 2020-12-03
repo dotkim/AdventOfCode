@@ -6,6 +6,7 @@
     {
       Benchmark.Method(_01.Run);
       Benchmark.Method(_02.Run);
+      Benchmark.Method(_03.Run);
     }
   }
 }
