@@ -19,7 +19,7 @@ namespace Aoc
       long count = CheckSlope(3, 1);
       Console.WriteLine($"Day 3.1:\t{count}");
       foreach (var slope in slopes) count *= CheckSlope(slope.Item1, slope.Item2);
-      Console.WriteLine($"Day 3.1:\t{count}");
+      Console.WriteLine($"Day 3.2:\t{count}");
     }
 
     private static long CheckSlope(int right, int down)
